@@ -112,7 +112,8 @@ int main(int argc, char *argv[]) {
                 QStringLiteral("path"));
     CommandOption filepathOption(
                 {"f", "filepath"},
-                QStringLiteral("The file to save the screenshot to, overrides the path option"));
+                QStringLiteral("The file to save the screenshot to, overrides the path option"),
+                QStringLiteral("filepath"));
     CommandOption clipboardOption(
                 {"c", "clipboard"},
                 QStringLiteral("Save the capture to the clipboard"));
