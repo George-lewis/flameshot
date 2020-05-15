@@ -110,6 +110,9 @@ int main(int argc, char *argv[]) {
                 {"p", "path"},
                 QStringLiteral("Path where the capture will be saved"),
                 QStringLiteral("path"));
+    CommandOption filepathOption(
+                {"f", "filepath"},
+                QStringLiteral("The file to save the screenshot to, overrides the path option"));
     CommandOption clipboardOption(
                 {"c", "clipboard"},
                 QStringLiteral("Save the capture to the clipboard"));
@@ -169,6 +172,15 @@ int main(int argc, char *argv[]) {
         return value >= 0;
     };
 
+    const QString filepathErr = QStringLiteral("Invalid filepath, parent directories do not exist");
+    auto filepathChecker = [filepathErr](const QString &filepath) -> bool {
+        bool res = QFileInfo(filepath).dir().exists();
+        if (!res) {
+            SystemNotification().sendMessage(QObject::tr(filepathErr.toLatin1().data()));
+        }
+        return res;
+    };
+
     const QString pathErr = QStringLiteral("Invalid path, it must be a real path in the system");
     auto pathChecker = [pathErr](const QString &pathValue) -> bool {
         bool res = QDir(pathValue).exists();
@@ -200,11 +212,11 @@ int main(int argc, char *argv[]) {
     parser.AddArgument(configArgument);
     auto helpOption = parser.addHelpOption();
     auto versionOption = parser.addVersionOption();
-    parser.AddOptions({ pathOption, delayOption, rawImageOption }, guiArgument);
+    parser.AddOptions({ pathOption, filepathOption, delayOption, rawImageOption }, guiArgument);
     parser.AddOptions({ screenNumberOption, clipboardOption, pathOption,
-                        delayOption, rawImageOption },
+                        filepathOption, delayOption, rawImageOption },
                       screenArgument);
-    parser.AddOptions({ pathOption, clipboardOption, delayOption, rawImageOption },
+    parser.AddOptions({ pathOption, filepathOption, clipboardOption, delayOption, rawImageOption },
                       fullArgument);
     parser.AddOptions({ autostartOption, filenameOption, trayOption,
                         showHelpOption, mainColorOption, contrastColorOption },
@@ -257,15 +269,17 @@ int main(int argc, char *argv[]) {
     }
     else if (parser.isSet(fullArgument)) { // FULL
         QString pathValue = parser.value(pathOption);
+        QString filepathValue = parser.value(filepathOption);
         int delay = parser.value(delayOption).toInt();
         bool toClipboard = parser.isSet(clipboardOption);
         bool isRaw = parser.isSet(rawImageOption);
         // Not a valid command
-        if (!isRaw && !toClipboard && pathValue.isEmpty()) {
+        if (!isRaw && !toClipboard && pathValue.isEmpty() && filepathValue.isEmpty()) {
             QTextStream out(stdout);
             out << "Invalid format, set where to save the content with one of "
                 << "the following flags:\n "
                 << pathOption.dashedNames().join(QStringLiteral(", ")) << "\n "
+                << filepathOption.dashedNames().join(QStringLiteral(", ")) << "\n "
                 << rawImageOption.dashedNames().join(QStringLiteral(", ")) << "\n "
                 << clipboardOption.dashedNames().join(QStringLiteral(", ")) << "\n\n";
             parser.parse(QStringList() << argv[0] << QStringLiteral("full") << QStringLiteral("-h"));
@@ -306,15 +320,17 @@ int main(int argc, char *argv[]) {
         QString numberStr = parser.value(screenNumberOption);
         int number = numberStr.startsWith(QLatin1String("-")) ? -1 : numberStr.toInt();
         QString pathValue = parser.value(pathOption);
+        QString filepathValue = parser.value(filepathOption);
         int delay = parser.value(delayOption).toInt();
         bool toClipboard = parser.isSet(clipboardOption);
         bool isRaw = parser.isSet(rawImageOption);
         // Not a valid command
-        if (!isRaw && !toClipboard && pathValue.isEmpty()) {
+        if (!isRaw && !toClipboard && pathValue.isEmpty() && filepathValue.isEmpty()) {
             QTextStream out(stdout);
             out << "Invalid format, set where to save the content with one of "
                 << "the following flags:\n "
                 << pathOption.dashedNames().join(QStringLiteral(", ")) << "\n "
+                << filepathOption.dashedNames().join(QStringLiteral(", ")) << "\n "
                 << rawImageOption.dashedNames().join(QStringLiteral(", ")) << "\n "
                 << clipboardOption.dashedNames().join(QStringLiteral(", ")) << "\n\n";
             parser.parse(QStringList() << argv[0] << QStringLiteral("screen") << QStringLiteral("-h"));
