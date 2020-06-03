@@ -19,6 +19,8 @@
 #include "src/utils/screenshotsaver.h"
 #include <QPainter>
 
+#include <iostream>
+
 SaveTool::SaveTool(QObject *parent) : AbstractActionTool(parent) {
 
 }
@@ -56,6 +58,7 @@ void SaveTool::pressed(const CaptureContext &context) {
             emit requestAction(REQ_CAPTURE_DONE_OK);
         }
     } else {
+        std::cout << "savetool.cpp" << std::endl;
         bool ok = ScreenshotSaver().saveToFilesystem(
                     context.selectedScreenshotArea(), context.savePath);
         if (ok) {

@@ -44,12 +44,14 @@
 #include <QBuffer>
 #include <QDesktopWidget>
 
+#include <iostream>
+
 // CaptureWidget is the main component used to capture the screen. It contains an
 // are of selection with its respective buttons.
 
 // enableSaveWIndow
 CaptureWidget::CaptureWidget(const uint id, const QString &savePath,
-                             bool fullScreen, QWidget *parent) :
+                             bool fullScreen, bool explicitFile, QWidget *parent) :
     QWidget(parent), m_mouseIsClicked(false), m_rightClick(false),
     m_newSelection(false), m_grabbing(false), m_captureDone(false),
     m_previewEnabled(true), m_adjustmentButtonPressed(false), m_activeButton(nullptr),
@@ -66,7 +68,7 @@ CaptureWidget::CaptureWidget(const uint id, const QString &savePath,
     m_showInitialMsg = m_config.showHelpValue();
     m_opacity = m_config.contrastOpacityValue();
     setMouseTracking(true);
-    initContext(savePath, fullScreen);
+    initContext(savePath, fullScreen, explicitFile);
     initShortcuts();
 
 #ifdef Q_OS_WIN
@@ -142,7 +144,7 @@ CaptureWidget::CaptureWidget(const uint id, const QString &savePath,
 
 CaptureWidget::~CaptureWidget() {
     if (m_captureDone) {
-        emit captureTaken(m_id, this->pixmap());
+        emit captureTaken(m_id, this->pixmap(), m_context.m_explicitFile);
     } else {
         emit captureFailed(m_id);
     }
@@ -538,7 +540,7 @@ void CaptureWidget::moveEvent(QMoveEvent *e) {
     m_context.widgetOffset = mapToGlobal(QPoint(0,0));
 }
 
-void CaptureWidget::initContext(const QString &savePath, bool fullscreen) {
+void CaptureWidget::initContext(const QString &savePath, bool fullscreen, bool explicitFile) {
     m_context.widgetDimensions = rect();
     m_context.color = m_config.drawColorValue();
     m_context.savePath = savePath;
@@ -546,6 +548,7 @@ void CaptureWidget::initContext(const QString &savePath, bool fullscreen) {
     m_context.mousePos= mapFromGlobal(QCursor::pos());
     m_context.thickness = m_config.drawThicknessValue();
     m_context.fullscreen = fullscreen;
+    m_context.m_explicitFile = explicitFile;
 }
 
 void CaptureWidget::initPanel() {
@@ -873,7 +876,7 @@ void CaptureWidget::saveScreenshot() {
     if (m_context.savePath.isEmpty()) {
         ScreenshotSaver().saveToFilesystemGUI(pixmap());
     } else {
-        ScreenshotSaver().saveToFilesystem(pixmap(), m_context.savePath);
+        ScreenshotSaver().saveToFilesystem(pixmap(), m_context.savePath, m_context.m_explicitFile);
     }
     close();
 }

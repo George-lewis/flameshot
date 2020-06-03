@@ -36,8 +36,8 @@ FlameshotDBusAdapter::~FlameshotDBusAdapter() {
 
 }
 
-void FlameshotDBusAdapter::graphicCapture(QString path, int delay, uint id) {
-    CaptureRequest req(CaptureRequest::GRAPHICAL_MODE, delay, path);
+void FlameshotDBusAdapter::graphicCapture(QString path, int delay, uint id, bool explicitFile) {
+    CaptureRequest req(CaptureRequest::GRAPHICAL_MODE, delay, path, explicitFile);
 //    if (toClipboard) {
 //        req.addTask(CaptureRequest::CLIPBOARD_SAVE_TASK);
 //    }
@@ -46,9 +46,9 @@ void FlameshotDBusAdapter::graphicCapture(QString path, int delay, uint id) {
 }
 
 void FlameshotDBusAdapter::fullScreen(
-        QString path, bool toClipboard, int delay, uint id)
+        QString path, bool toClipboard, int delay, uint id, bool explicitFile)
 {
-    CaptureRequest req(CaptureRequest::FULLSCREEN_MODE, delay, path);
+    CaptureRequest req(CaptureRequest::FULLSCREEN_MODE, delay, path, explicitFile);
     if (toClipboard) {
         req.addTask(CaptureRequest::CLIPBOARD_SAVE_TASK);
     }
@@ -64,9 +64,10 @@ void FlameshotDBusAdapter::openLauncher() {
 }
 
 void FlameshotDBusAdapter::captureScreen(int number, QString path,
-                                         bool toClipboard, int delay, uint id)
+                                         bool toClipboard, int delay,
+                                         uint id, bool explicitFile)
 {
-    CaptureRequest req(CaptureRequest::SCREEN_MODE, delay, path, number);
+    CaptureRequest req(CaptureRequest::SCREEN_MODE, delay, path, number, explicitFile);
     if (toClipboard) {
         req.addTask(CaptureRequest::CLIPBOARD_SAVE_TASK);
     }
@@ -97,9 +98,9 @@ void FlameshotDBusAdapter::autostartEnabled(bool enabled) {
     controller->updateConfigComponents();
 }
 
-void FlameshotDBusAdapter::handleCaptureTaken(uint id, const QPixmap &p) {
+void FlameshotDBusAdapter::handleCaptureTaken(uint id, const QPixmap &p, bool explicitFile) {
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     p.save(&buffer, "PNG");
-    emit captureTaken(id, byteArray);
+    emit captureTaken(id, byteArray, explicitFile);
 }

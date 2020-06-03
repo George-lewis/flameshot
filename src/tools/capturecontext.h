@@ -43,6 +43,8 @@ struct CaptureContext {
     int thickness;
     // Mode of the capture widget
     bool fullscreen;
+    // Whether or not the path is an explicit filename
+    bool m_explicitFile;
 
     QPixmap selectedScreenshotArea() const ;
 };

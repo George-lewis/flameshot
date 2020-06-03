@@ -44,7 +44,7 @@ public:
     void enableExports();
 
 signals:
-    void captureTaken(uint id, QPixmap p);
+    void captureTaken(uint id, QPixmap p, bool explicitFile);
     void captureFailed(uint id);
 
 public slots:
@@ -62,10 +62,10 @@ public slots:
     void updateConfigComponents();
 
 private slots:
-    void startFullscreenCapture(const uint id = 0);
+    void startFullscreenCapture(const uint id = 0, bool explicitFile = false);
     void startVisualCapture(const uint id = 0,
-                             const QString &forcedSavePath = QString());
-    void startScreenGrab(const uint id = 0, const int screenNumber = -1);
+                             const QString &forcedSavePath = QString(), bool explicitFile = false);
+    void startScreenGrab(const uint id = 0, const int screenNumber = -1, bool explicitFile = false);
 
     void handleCaptureTaken(uint id, QPixmap p);
     void handleCaptureFailed(uint id);

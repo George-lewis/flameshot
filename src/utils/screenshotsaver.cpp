@@ -25,6 +25,8 @@
 #include <QFileDialog>
 #include <QImageWriter>
 
+#include <iostream>
+
 ScreenshotSaver::ScreenshotSaver() {
 }
 
@@ -35,10 +37,19 @@ void ScreenshotSaver::saveToClipboard(const QPixmap &capture) {
 }
 
 bool ScreenshotSaver::saveToFilesystem(const QPixmap &capture,
-                                       const QString &path)
+                                       const QString &path,
+                                       const bool explicitFile)
 {
-    QString completePath = FileNameHandler().generateAbsolutePath(path);
-    completePath += QLatin1String(".png");
+    QString completePath;
+    // bool ok;
+    std::cout << "Explicit path ? : " << explicitFile << '\n';
+    if (!explicitFile) {
+        completePath = FileNameHandler().generateAbsolutePath(path);
+        completePath += QLatin1String(".png");
+    } else {
+        completePath = path;
+    }
+    std::cout << "motherfucker " << completePath.toStdString() << '\n';
     bool ok = capture.save(completePath);
     QString saveMessage;
     QString notificationPath = completePath;
@@ -56,6 +67,7 @@ bool ScreenshotSaver::saveToFilesystem(const QPixmap &capture,
 }
 
 bool ScreenshotSaver::saveToFilesystemGUI(const QPixmap &capture) {
+    std::cout << "Not even this path bro\n";
     bool ok = false;
 
     while (!ok) {

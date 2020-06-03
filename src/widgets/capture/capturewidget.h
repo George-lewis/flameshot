@@ -53,6 +53,7 @@ public:
     explicit CaptureWidget(const uint id = 0,
                            const QString &savePath = QString(),
                            bool fullScreen = true,
+                           bool explicitFile = false,
                            QWidget *parent = nullptr);
     ~CaptureWidget();
 
@@ -64,7 +65,7 @@ public slots:
     void deleteToolwidgetOrClose();
 
 signals:
-    void captureTaken(uint id, QPixmap p);
+    void captureTaken(uint id, QPixmap p, bool explicitFile);
     void captureFailed(uint id);
     void colorChanged(const QColor &c);
     void thicknessChanged(const int thickness);
@@ -123,7 +124,7 @@ protected:
     bool m_adjustmentButtonPressed;
 
 private:
-    void initContext(const QString &savePath, bool fullscreen);
+    void initContext(const QString &savePath, bool fullscreen, bool explicitFile);
     void initPanel();
     void initSelection();
     void initShortcuts();

@@ -19,13 +19,15 @@
 #include "src/utils/screenshotsaver.h"
 #include <QVector>
 #include <QDateTime>
+#include <iostream>
 
 CaptureRequest::CaptureRequest(CaptureRequest::CaptureMode mode,
                                const uint delay, const QString &path,
+                               const bool explicitFile,
                                const QVariant &data,
                                CaptureRequest::ExportTask tasks) :
-    m_mode(mode), m_delay(delay), m_path(path), m_tasks(tasks),
-    m_data(data), m_forcedID(false), m_id(0)
+    m_mode(mode), m_delay(delay), m_path(path), m_explicitFile(explicitFile),
+    m_tasks(tasks), m_data(data), m_forcedID(false), m_id(0)
 {
 
 }
@@ -62,6 +64,10 @@ QString CaptureRequest::path() const {
     return m_path;
 }
 
+bool CaptureRequest::explicitFile() const {
+    return m_explicitFile;
+}
+
 QVariant CaptureRequest::data() const {
     return m_data;
 }
@@ -71,11 +77,13 @@ void CaptureRequest::addTask(CaptureRequest::ExportTask task) {
 }
 
 void CaptureRequest::exportCapture(const QPixmap &p) {
+    std::cout << "EXPORTCAPTURE '" << m_path.toStdString() << "' '" << m_explicitFile << "' '" << ((m_tasks & ExportTask::FILESYSTEM_SAVE_TASK) != ExportTask::NO_TASK) << '\'' << std::endl;
     if ((m_tasks & ExportTask::FILESYSTEM_SAVE_TASK) != ExportTask::NO_TASK) {
         if (m_path.isEmpty()) {
             ScreenshotSaver().saveToFilesystemGUI(p);
         } else {
-            ScreenshotSaver().saveToFilesystem(p, m_path);
+            std::cout << "Saving to path " << m_path.toStdString() << " exFile?: " << m_explicitFile << std::endl;
+            ScreenshotSaver().saveToFilesystem(p, m_path, m_explicitFile);
         }
     }
 

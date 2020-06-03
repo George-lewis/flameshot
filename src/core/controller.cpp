@@ -79,20 +79,20 @@ void Controller::requestCapture(const CaptureRequest &request) {
 
     switch (request.captureMode()) {
     case CaptureRequest::FULLSCREEN_MODE:
-        doLater(request.delay(), this, [this, id](){
-            this->startFullscreenCapture(id);
+        doLater(request.delay(), this, [this, id, &request](){
+            this->startFullscreenCapture(id, request.explicitFile());
         });
         break;
     case CaptureRequest::SCREEN_MODE: {
         int &&number = request.data().toInt();
-        doLater(request.delay(), this, [this, id, number](){
-            this->startScreenGrab(id, number);
+        doLater(request.delay(), this, [this, id, number, &request](){
+            this->startScreenGrab(id, number, request.explicitFile());
         });
         break;
     } case CaptureRequest::GRAPHICAL_MODE: {
         QString &&path = request.path();
-        doLater(request.delay(), this, [this, id, path](){
-            this->startVisualCapture(id, path);
+        doLater(request.delay(), this, [this, id, path, &request](){
+            this->startVisualCapture(id, path, request.explicitFile());
         });
         break;
     } default:
@@ -102,7 +102,7 @@ void Controller::requestCapture(const CaptureRequest &request) {
 }
 
 // creation of a new capture in GUI mode
-void Controller::startVisualCapture(const uint id, const QString &forcedSavePath) {
+void Controller::startVisualCapture(const uint id, const QString &forcedSavePath, bool explicitFile) {
     if (!m_captureWindow) {
         QWidget *modalWidget = nullptr;
         do {
@@ -113,7 +113,8 @@ void Controller::startVisualCapture(const uint id, const QString &forcedSavePath
             }
         } while (modalWidget);
 
-        m_captureWindow = new CaptureWidget(id, forcedSavePath);
+        // true is the default value for fullscreen, so that has to be filled in manually
+        m_captureWindow = new CaptureWidget(id, forcedSavePath, true, explicitFile);
         //m_captureWindow = new CaptureWidget(id, forcedSavePath, false); // debug
         connect(m_captureWindow, &CaptureWidget::captureFailed,
                 this, &Controller::captureFailed);
@@ -131,7 +132,7 @@ void Controller::startVisualCapture(const uint id, const QString &forcedSavePath
     }
 }
 
-void Controller::startScreenGrab(const uint id, const int screenNumber) {
+void Controller::startScreenGrab(const uint id, const int screenNumber, bool explicitFile) {
     bool ok = true;
     int n = screenNumber;
 
@@ -141,7 +142,7 @@ void Controller::startScreenGrab(const uint id, const int screenNumber) {
     }
     QPixmap p(ScreenGrabber().grabScreen(n, ok));
     if (ok) {
-        emit captureTaken(id, p);
+        emit captureTaken(id, p, explicitFile);
     } else {
         emit captureFailed(id);
     }
@@ -239,11 +240,11 @@ void Controller::updateConfigComponents() {
     }
 }
 
-void Controller::startFullscreenCapture(const uint id) {
+void Controller::startFullscreenCapture(const uint id, bool explicitFile) {
     bool ok = true;
     QPixmap p(ScreenGrabber().grabEntireDesktop(ok));
     if (ok) {
-        emit captureTaken(id, p);
+        emit captureTaken(id, p, explicitFile);
     } else {
         emit captureFailed(id);
     }

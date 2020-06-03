@@ -30,6 +30,8 @@
 #include <QTimer>
 #include <QDir>
 
+#include <iostream>
+
 #if defined(Q_OS_LINUX) || defined(Q_OS_UNIX)
 #include "src/core/flameshotdbusadapter.h"
 #include "src/utils/dbusutils.h"
@@ -243,16 +245,23 @@ int main(int argc, char *argv[]) {
     }
     else if (parser.isSet(guiArgument)) { // GUI
         QString pathValue = parser.value(pathOption);
+        QString filepathValue = parser.value(filepathOption);
         int delay = parser.value(delayOption).toInt();
         bool isRaw = parser.isSet(rawImageOption);
         DBusUtils dbusUtils;
-        CaptureRequest req(CaptureRequest::GRAPHICAL_MODE, delay, pathValue);
+
+        const auto filepathSet = parser.isSet(filepathOption);
+        
+        auto path = filepathSet ? filepathValue : pathValue;
+        std::cout << "Using path: " << path.toStdString() << std::endl;
+        CaptureRequest req(CaptureRequest::GRAPHICAL_MODE, delay, path, filepathSet);
+        
         uint id = req.id();
 
         // Send message
         QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.dharkael.Flameshot"),
                                            QStringLiteral("/"), QLatin1String(""), QStringLiteral("graphicCapture"));
-        m << pathValue << delay << id;
+        m << path << delay << id << filepathSet;
         QDBusConnection sessionBus = QDBusConnection::sessionBus();
         dbusUtils.checkDBusConnection(sessionBus);
         sessionBus.call(m);
@@ -287,11 +296,15 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
-        CaptureRequest req(CaptureRequest::FULLSCREEN_MODE, delay, pathValue);
+        const auto filepathSet = parser.isSet(filepathOption);
+
+        auto path = filepathSet ? filepathValue : pathValue;
+        CaptureRequest req(CaptureRequest::FULLSCREEN_MODE, delay, path, filepathSet);
+
         if (toClipboard) {
             req.addTask(CaptureRequest::CLIPBOARD_SAVE_TASK);
         }
-        if (!pathValue.isEmpty()) {
+        if (!path.isEmpty()) {
             req.addTask(CaptureRequest::FILESYSTEM_SAVE_TASK);
         }
         uint id = req.id();
@@ -300,7 +313,7 @@ int main(int argc, char *argv[]) {
         // Send message
         QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.dharkael.Flameshot"),
                                                QStringLiteral("/"), QLatin1String(""), QStringLiteral("fullScreen"));
-        m << pathValue << toClipboard << delay << id;
+        m << path << toClipboard << delay << id << filepathSet;
         QDBusConnection sessionBus = QDBusConnection::sessionBus();
         dbusUtils.checkDBusConnection(sessionBus);
         sessionBus.call(m);
@@ -338,12 +351,15 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
-        CaptureRequest req(CaptureRequest::SCREEN_MODE,
-                           delay, pathValue, number);
+        const auto filepathSet = parser.isSet(filepathOption);
+
+        auto path = filepathSet ? filepathValue : pathValue;
+        CaptureRequest req(CaptureRequest::SCREEN_MODE, delay, path, filepathSet, number);
+
         if (toClipboard) {
             req.addTask(CaptureRequest::CLIPBOARD_SAVE_TASK);
         }
-        if (!pathValue.isEmpty()) {
+        if (!path.isEmpty()) {
             req.addTask(CaptureRequest::FILESYSTEM_SAVE_TASK);
         }
         uint id = req.id();
@@ -352,7 +368,7 @@ int main(int argc, char *argv[]) {
         // Send message
         QDBusMessage m = QDBusMessage::createMethodCall(QStringLiteral("org.dharkael.Flameshot"),
                                                QStringLiteral("/"), QLatin1String(""), QStringLiteral("captureScreen"));
-        m << number << pathValue << toClipboard << delay << id;
+        m << number << path << toClipboard << delay << id << filepathSet;
         QDBusConnection sessionBus = QDBusConnection::sessionBus();
         dbusUtils.checkDBusConnection(sessionBus);
         sessionBus.call(m);

@@ -38,6 +38,7 @@ public:
     CaptureRequest(CaptureMode mode,
                    const uint delay = 0,
                    const QString &path = QLatin1String(""),
+                   const bool explicitFile = false,
                    const QVariant &data = QVariant(),
                    ExportTask tasks = NO_TASK);
 
@@ -46,6 +47,7 @@ public:
     uint id() const;
     uint delay() const;
     QString path() const;
+    bool explicitFile() const;
     QVariant data() const;
     CaptureMode captureMode() const;
 
@@ -56,6 +58,7 @@ private:
     CaptureMode m_mode;
     uint m_delay;
     QString m_path;
+    bool m_explicitFile;
     ExportTask m_tasks;
     QVariant m_data;
 
